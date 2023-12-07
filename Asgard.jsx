@@ -22,12 +22,14 @@
         var files = [];
         for (var i = 0; i < numAllFiles; i++) {
             var file = allFiles[i];
-            var name = file.displayName.replace(".jsx", "");
-            var path = file.fsName;
-            files.push({
-                "name": name,
-                "path": path
-            });
+            if (file.displayName !== ".DS_Store") {
+                var name = file.displayName.replace(".jsx", "");
+                var path = file.fsName;
+                files.push({
+                    "name": name,
+                    "path": path
+                });
+            }
         }
         return files.sort(function(a, b) {
             return (a.name < b.name) ? -1 : 1
