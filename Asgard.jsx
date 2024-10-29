@@ -23,7 +23,8 @@
 
 (function(thisObj) {
 
-    var ALL_SCRIPT_FILES = [];
+    var SCRIPT_DATABASE = {};
+    var SCRIPT_FILES = [];
 
     /**
      * Get a folder path from After Effects settings.
@@ -107,6 +108,56 @@
     }
 
     /**
+     * Get the database folder at ~/Library/Application Support/Asgard. If the
+     * folder doesn't already exist then make it.
+     * @return {Folder} - database folder
+     */
+    function getDatabaseFolder() {
+        var folder = new Folder(Folder.userData.fsName + "/Asgard");
+        if (folder.exists === false) {
+            folder.create();
+        }
+        return folder;
+    }
+
+    /**
+     * Save the database as a JSON file within the database folder.
+     */
+    function setDatabase() {
+        var folder = getDatabaseFolder();
+        var file = new File(folder.fsName + "/db.json");
+        file.open("w");
+        file.write(JSON.stringify(SCRIPT_DATABASE, undefined, 4));
+        file.close();
+    }
+
+    /**
+     * Get the database from the JSON file within the database folder. If the
+     * file doesn't exist then make it.
+     * @return {Object} - database
+     */
+    function getDatabase() {
+        var database = {};
+        var folder = getDatabaseFolder();
+        var file = new File(folder.fsName + "/db.json");
+        if (file.exists === true) {
+            file.open("r");
+            database = JSON.parse(file.read());
+            file.close();
+        }
+        return database;
+    }
+
+    /**
+     * Record the click usage of a script in the database.
+     * @param  {String} fileName - script file name
+     */
+    function recordScript(fileName) {
+        SCRIPT_DATABASE[fileName] = (SCRIPT_DATABASE[fileName] || 0) + 1;
+        setDatabase();
+    }
+
+    /**
      * Execute ExtendScript code from a given JSX file.
      * @param  {String} filePath - file path
      */
@@ -168,14 +219,16 @@
         var list = win.add("listbox");
         list.maximumSize.height = 500;
         list.onDoubleClick = function() {
-            executeScript(list.selection.path);
+            recordScript(list.selection.fileName);
+            executeScript(list.selection.filePath);
         };
 
         var folderPath = getFolderPath();
         if (folderPath !== false) {
             var folder = new Folder(folderPath);
-            getAllScriptFiles(folder, ALL_SCRIPT_FILES);
-            populateScriptList(list, ALL_SCRIPT_FILES);
+            SCRIPT_DATABASE = getDatabase();
+            SCRIPT_FILES = getAllScriptFiles(folder, []);
+            populateScriptList(list, SCRIPT_FILES);
         }
 
         win.onResizing = win.onResize = function() {
