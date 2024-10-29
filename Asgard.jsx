@@ -162,8 +162,7 @@
      * @param  {String} filePath - file path
      */
     function executeScript(filePath) {
-        var file = new File(filePath);
-        $.evalFile(file);
+        $.evalFile(File(filePath));
     }
 
     /**
@@ -210,9 +209,8 @@
             var folder = Folder.selectDialog();
             if (folder !== null) {
                 setFolderPath(folder.fsName);
-                ALL_SCRIPT_FILES = [];
-                getAllScriptFiles(folder, ALL_SCRIPT_FILES);
-                populateScriptList(list, ALL_SCRIPT_FILES);
+                SCRIPT_FILES = getAllScriptFiles(folder, []);
+                populateScriptList(list, SCRIPT_FILES);
             }
         };
 
