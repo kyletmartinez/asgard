@@ -187,9 +187,13 @@
 
         var searchText = group.add("edittext");
         searchText.preferredSize.width = 218;
+        searchText.previousText = "";
         searchText.onChanging = function() {
             var filter = this.text;
-            populateScriptList(list, ALL_SCRIPT_FILES, filter);
+            if (filter !== this.previousText) {
+                this.previousText = filter;
+                populateScriptList(list, SCRIPT_FILES, filter);
+            }
         };
 
         var clearButton = group.add("button");
