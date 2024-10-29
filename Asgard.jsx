@@ -101,8 +101,10 @@
         for (var i = 0; i < numFiles; i++) {
             var file = files[i];
             if (filter === undefined || fileIncludes(file, filter)) {
-                listItem = listbox.add("item", file.name);
-                listItem.path = file.path;
+                var star = (SCRIPT_DATABASE[file.name]) ? "★ " : "";
+                listItem = listbox.add("item", star + file.name);
+                listItem.fileName = file.name;
+                listItem.filePath = file.path;
             }
         }
     }
