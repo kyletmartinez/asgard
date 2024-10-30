@@ -1,6 +1,6 @@
 /**
  * @name Asgard
- * @version 1.2
+ * @version 1.2.1
  * @author Kyle Martinez <www.kyle-martinez.com>
  *
  * @description A 3rd-party script launcher for After Effects.
@@ -23,11 +23,15 @@
 
 (function(thisObj) {
 
-    var SCRIPT_DATABASE = {};
-    var SCRIPT_FILES = [];
+    var GLOBAL_CLICK_DATABASE = {};
+    var GLOBAL_SCRIPT_FILES = {};
+
+    /**********************************************************************************************
+     * GET ND SET FOLDER PATH IN AFTER EFFECTS SETTINGS *******************************************
+     **********************************************************************************************/
 
     /**
-     * Get a folder path from After Effects settings.
+     * Get a folder path from the After Effects settings.
      * @return {String|Boolean} - folder path
      */
     function getFolderPath() {
@@ -39,7 +43,7 @@
     }
 
     /**
-     * Save a folder path to After Effects settings.
+     * Save a folder path in the After Effects settings.
      * @param {String} folderPath - folder path
      */
     function setFolderPath(folderPath) {
@@ -47,71 +51,53 @@
         app.preferences.saveToDisk();
     }
 
+    /**********************************************************************************************
+     * GET SCRIPT FILES FROM FILE SYSTEM **********************************************************
+     **********************************************************************************************/
+
     /**
-     * Populate an aphabetically-sorted array of JSX files by recursively searching within a
-     * directory and all subdirectories. Files are represented by objects with a name and a path
-     * property.
+     * Recursively get all JSX files from a folder and any subfolders. Return an array of file
+     * objects containing a name and path property.
      * @param  {Folder} folder - current folder
-     * @param  {Array} files   - array of files
-     * @return {Array}         - array of files
+     * @param  {Array}  files  - array of file objects (optional)
+     * @return {Array}         - array of file objects
      */
     function getAllScriptFiles(folder, files) {
-        var contents = folder.getFiles();
-        var numContents = contents.length;
-        for (var c = 0; c < numContents; c++) {
-            var content = contents[c];
-            if (content instanceof Folder) {
-                getAllScriptFiles(content, files);
+        files = files || [];
+        var items = folder.getFiles();
+        var numItems = items.length;
+        for (var i = 0; i < numItems; i++) {
+            var item = items[i];
+            if (item instanceof Folder) {
+                getAllScriptFiles(item, files);
             } else {
-                if (content.displayName.match(/\.jsx$/g)) {
-                    var name = content.displayName.replace(".jsx", "");
-                    var path = content.fsName;
-                    files.push({
-                        "name": name,
-                        "path": path
-                    });
+                var name = item.displayName;
+                if (name.match(/\.jsx$/g)) {
+                    files.push({"name": name.replace(".jsx", ""), "path": item.fsName});
                 }
             }
         }
-        return files.sort(function(a, b) {
-            return (a.name < b.name) ? -1 : 1;
-        });
+        return files;
     }
 
     /**
-     * Check if a file name includes a given set of characters.
-     * @param  {File} file     - current file
-     * @param  {String} filter - string of characters
-     * @return {Boolean}       - if string contains set of characters
+     * Get all JSX files from a folder. Return an unsorted array of file objects containing a name
+     * and path property.
+     * @param  {String} folderPath - folder path
+     * @return {Array}             - array of file objects
      */
-    function fileIncludes(file, filter) {
-        return (file.name.toLowerCase().includes(filter.toLowerCase()));
+    function getScriptFiles(folderPath) {
+        var folder = new Folder(folderPath);
+        var files = getAllScriptFiles(folder);
+        return files;
     }
 
-    /**
-     * Add all file names to a listbox with optional filter.
-     * @param  {listbox} listbox - list box
-     * @param  {Array} files     - array of files
-     * @param  {String} filter   - otional character set
-     */
-    function populateScriptList(listbox, files, filter) {
-        listbox.removeAll();
-        var listItem = null;
-        var numFiles = files.length;
-        for (var i = 0; i < numFiles; i++) {
-            var file = files[i];
-            if (filter === undefined || fileIncludes(file, filter)) {
-                var star = (SCRIPT_DATABASE[file.name]) ? "★ " : "";
-                listItem = listbox.add("item", star + file.name);
-                listItem.fileName = file.name;
-                listItem.filePath = file.path;
-            }
-        }
-    }
+    /**********************************************************************************************
+     * GET AND SET DATABASE JSON FILE *************************************************************
+     **********************************************************************************************/
 
     /**
-     * Get the database folder at ~/Library/Application Support/Asgard. If the
-     * folder doesn't already exist then make it.
+     * Get the database folder.
      * @return {Folder} - database folder
      */
     function getDatabaseFolder() {
@@ -123,22 +109,21 @@
     }
 
     /**
-     * Save the database as a JSON file within the database folder.
+     * Save the database object to the local JSON file.
      */
-    function setDatabase() {
+    function setClickDatabase() {
         var folder = getDatabaseFolder();
         var file = new File(folder.fsName + "/db.json");
         file.open("w");
-        file.write(JSON.stringify(SCRIPT_DATABASE, undefined, 4));
+        file.write(JSON.stringify(GLOBAL_CLICK_DATABASE, undefined, 4));
         file.close();
     }
 
     /**
-     * Get the database from the JSON file within the database folder. If the
-     * file doesn't exist then make it.
-     * @return {Object} - database
+     * Get the database from the local JSON file.
+     * @return {Object} - database object
      */
-    function getDatabase() {
+    function getClickDatabase() {
         var database = {};
         var folder = getDatabaseFolder();
         var file = new File(folder.fsName + "/db.json");
@@ -147,31 +132,132 @@
             database = JSON.parse(file.read());
             file.close();
         }
-        return database;
+        return (database || {});
     }
 
     /**
-     * Record the click usage of a script in the database.
-     * @param  {String} fileName - script file name
+     * Update the number of clicks the current script has saved.
+     * @param {String} name - current script name
      */
-    function recordScript(fileName) {
-        SCRIPT_DATABASE[fileName] = (SCRIPT_DATABASE[fileName] || 0) + 1;
-        setDatabase();
+    function setClicks(name) {
+        GLOBAL_CLICK_DATABASE[name] = (GLOBAL_CLICK_DATABASE[name] || 0) + 1;
+        setClickDatabase();
     }
 
     /**
-     * Execute ExtendScript code from a given JSX file.
-     * @param  {String} filePath - file path
+     * Get the number of clicks the current script has saved.
+     * @param  {String} name - current script name
+     * @return {Int}         - number of clicks
      */
-    function executeScript(filePath) {
-        $.evalFile(File(filePath));
+    function getClicks(name) {
+        return (GLOBAL_CLICK_DATABASE[name] || 0);
+    }
+
+    /**
+     * Merge the script list and database into a single object containing both favorite and standard
+     * script types.
+     * @param  {Array} files - array of file objects
+     * @return {Object}      - object of file objects
+     */
+    function mergeScriptFiles(files) {
+        var scriptList = {"favorite": [], "standard": []};
+        var numFiles = files.length;
+        for (var i = 0; i < numFiles; i++) {
+            var file = files[i];
+            if (getClicks(file.name) >= 5) {
+                scriptList.favorite.push(file);
+            } else {
+                scriptList.standard.push(file);
+            }
+        }
+        scriptList.favorite.sort(function(a, b) {
+            return (a.name < b.name) ? -1 : 1;
+        });
+        scriptList.standard.sort(function(a, b) {
+            return (a.name < b.name) ? -1 : 1;
+        });
+        return scriptList;
+    }
+
+    /**********************************************************************************************
+     * POPULATE LISTBOX UI ************************************************************************
+     **********************************************************************************************/
+
+    /**
+     * Add a script to the current listbox.
+     * @param {Listbox} listbox - current listbox
+     * @param {Object}  file    - current file object
+     * @param {Boolean} useStar - if file indicates "favorite"
+     */
+    function addListItem(listbox, file, useStar) {
+        var name = (useStar) ? "★ " + file.name : file.name;
+        var listItem = listbox.add("item", name);
+        listItem.fileName = file.name;
+        listItem.filePath = file.path;
+    }
+
+    /**
+     * Check to see if the file name contains a subset of characters.
+     * @param  {Object} file   - current file object
+     * @param  {String} filter - character filter
+     * @return {Boolean}       - file name includes
+     */
+    function fileNameIncludes(file, filter) {
+        return (file.name.toLowerCase().includes(filter.toLowerCase()));
+    }
+
+    /**
+     * Add all scripts to the current listbox that match an optional filter.
+     * @param {Listbox} listbox - current listbox
+     * @param {Array}   files   - array of file objects
+     * @param {Boolean} useStar - if list indicates "favorites"
+     * @param {String}  filter  - character filter (optional)
+     */
+    function addListItems(listbox, files, useStar, filter) {
+        var numFiles = files.length;
+        for (var i = 0; i < numFiles; i++) {
+            var file = files[i];
+            if (filter === undefined || fileNameIncludes(file, filter)) {
+                addListItem(listbox, file, useStar);
+            }
+        }
+    }
+
+    /**
+     * Remove all scripts in the current listbox and rebuild the list with all scripts that match an
+     * optional filter.
+     * @param  {Listbox} listbox - current listbox
+     * @param  {String}  filter  - character filter (optional)
+     */
+    function populateListbox(listbox, filter) {
+        listbox.removeAll();
+        addListItems(listbox, GLOBAL_SCRIPT_FILES.favorite, true, filter);
+        addListItems(listbox, GLOBAL_SCRIPT_FILES.standard, false, filter);
+    }
+
+    /**********************************************************************************************
+     * USER INTERFACE *****************************************************************************
+     **********************************************************************************************/
+
+    /**
+     * Aquire the necessary script data and click data to populate the script listbox.
+     * @param  {Listbox} listbox - current listbox
+     */
+    function refreshUserInterface(listbox) {
+        var folderPath = getFolderPath();
+        if (folderPath !== false) {
+            var files = getScriptFiles(folderPath);
+            GLOBAL_CLICK_DATABASE = getClickDatabase();
+            GLOBAL_SCRIPT_FILES = mergeScriptFiles(files);
+            populateListbox(listbox);
+        }
     }
 
     /**
      * Build the UI for this script.
      * @param  {Panel|Window} thisObj - the script panel
      */
-    function buildUI(thisObj) {
+    function buildUserInterface(thisObj) {
         var win = null;
         if (thisObj instanceof Panel) {
             win = thisObj;
@@ -194,7 +280,7 @@
             var filter = this.text;
             if (filter !== this.previousText) {
                 this.previousText = filter;
-                populateScriptList(list, SCRIPT_FILES, filter);
+                populateListbox(listbox, filter);
             }
         };
 
@@ -204,7 +290,8 @@
         clearButton.maximumSize.width = 24;
         clearButton.onClick = function() {
             searchText.text = "";
-            populateScriptList(list, ALL_SCRIPT_FILES);
+            searchText.previousText = "";
+            populateListbox(listbox, filter);
         };
 
         var folderButton = group.add("button");
@@ -215,25 +302,18 @@
             var folder = Folder.selectDialog();
             if (folder !== null) {
                 setFolderPath(folder.fsName);
-                SCRIPT_FILES = getAllScriptFiles(folder, []);
-                populateScriptList(list, SCRIPT_FILES);
+                refreshUserInterface(listbox);
             }
         };
 
-        var list = win.add("listbox");
-        list.maximumSize.height = 500;
-        list.onDoubleClick = function() {
-            recordScript(list.selection.fileName);
-            executeScript(list.selection.filePath);
+        var listbox = win.add("listbox");
+        listbox.maximumSize.height = 500;
+        listbox.onDoubleClick = function() {
+            setClicks(listbox.selection.fileName);
+            $.evalFile(File(listbox.selection.filePath));
         };
 
-        var folderPath = getFolderPath();
-        if (folderPath !== false) {
-            var folder = new Folder(folderPath);
-            SCRIPT_DATABASE = getDatabase();
-            SCRIPT_FILES = getAllScriptFiles(folder, []);
-            populateScriptList(list, SCRIPT_FILES);
-        }
+        refreshUserInterface(listbox);
 
         win.onResizing = win.onResize = function() {
             this.layout.resize();
@@ -248,6 +328,6 @@
         }
     }
 
-    buildUI(thisObj);
+    buildUserInterface(thisObj);
 
 })(this);
