@@ -59,11 +59,10 @@
      * Recursively get all JSX files from a folder and any subfolders. Return an array of file
      * objects containing a name and path property.
      * @param  {Folder} folder - current folder
-     * @param  {Array}  files  - array of file objects (optional)
+     * @param  {Array}  files  - array of file objects
      * @return {Array}         - array of file objects
      */
     function getAllScriptFiles(folder, files) {
-        files = files || [];
         var items = folder.getFiles();
         var numItems = items.length;
         for (var i = 0; i < numItems; i++) {
@@ -88,7 +87,7 @@
      */
     function getScriptFiles(folderPath) {
         var folder = new Folder(folderPath);
-        var files = getAllScriptFiles(folder);
+        var files = getAllScriptFiles(folder, []);
         return files;
     }
 
