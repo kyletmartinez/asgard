@@ -337,7 +337,7 @@
         clearButton.onClick = function() {
             searchText.text = "";
             searchText.previousText = "";
-            populateListbox(listbox, filter);
+            populateListbox(listbox);
         };
 
         var settingsButton = group.add("button", undefined, "s");
