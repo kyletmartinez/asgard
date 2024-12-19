@@ -310,16 +310,18 @@
             win = new Window("palette", "Asgard", undefined, {resizeable: true});
         }
 
-        win.alignChildren = ["fill", "top"];
-        win.spacing = 5;
+        win.alignChildren = ["left", "top"];
         win.margins = 0;
+        win.spacing = 5;
 
         var group = win.add("group");
-        group.spacing = 2;
+        group.alignChildren = ["right", "fill"];
+        group.alignment = "fill";
         group.margins = 0;
+        group.spacing = 5;
 
         var searchText = group.add("edittext");
-        searchText.preferredSize.width = 218;
+        searchText.alignment = ["fill","fill"];
         searchText.previousText = "";
         searchText.onChanging = function() {
             var filter = this.text;
@@ -329,10 +331,9 @@
             }
         };
 
-        var clearButton = group.add("button");
-        clearButton.text = "x";
-        clearButton.maximumSize.height = 24;
-        clearButton.maximumSize.width = 24;
+        var clearButton = group.add("button", undefined, "x");
+        clearButton.minimumSize = [24, 24];
+        clearButton.maximumSize = [24, 24];
         clearButton.onClick = function() {
             searchText.text = "";
             searchText.previousText = "";
@@ -348,7 +349,7 @@
         };
 
         var listbox = win.add("listbox");
-        listbox.maximumSize.height = 500;
+        listbox.alignment = ["fill", "fill"];
         listbox.onDoubleClick = function() {
             setClicks(listbox.selection.fileName);
             $.evalFile(File(listbox.selection.filePath));
