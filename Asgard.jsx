@@ -27,27 +27,30 @@
     var GLOBAL_SCRIPT_FILES = {};
 
     /**********************************************************************************************
-     * GET ND SET FOLDER PATH IN AFTER EFFECTS SETTINGS *******************************************
+     * GET AND SET AFTER EFFECTS SETTINGS *********************************************************
      **********************************************************************************************/
 
     /**
-     * Get a folder path from the After Effects settings.
-     * @return {String|Boolean} - folder path
+     * Get a setting from the After Effects preferences file.
+     * @param  {String} keyName    - name of setting
+     * @param  {String} keyDefault - default value of setting (if not previously saved)
+     * @return {String}            - value of setting
      */
-    function getFolderPath() {
-        var folderPath = false;
-        if (app.settings.haveSetting("Asgard", "Folder") === true) {
-            folderPath = app.settings.getSetting("Asgard", "Folder");
+    function getAfterEffectsSettings(keyName, keyDefault) {
+        var keyValue = keyDefault;
+        if (app.settings.haveSetting("Asgard", keyName) === true) {
+            keyValue = app.settings.getSetting("Asgard", keyName);
         }
-        return folderPath;
+        return keyValue;
     }
 
     /**
-     * Save a folder path in the After Effects settings.
-     * @param {String} folderPath - folder path
+     * Save a setting to the After Effects preferences file.
+     * @param {String} keyName  - name of setting
+     * @param {String} keyValue - value of setting
      */
-    function setFolderPath(folderPath) {
-        app.settings.saveSetting("Asgard", "Folder", folderPath);
+    function setAfterEffectsSetting(keyName, keyValue) {
+        app.settings.saveSetting("Asgard", keyName, keyValue);
         app.preferences.saveToDisk();
     }
 
@@ -243,7 +246,7 @@
      * @param  {Listbox} listbox - current listbox
      */
     function refreshUserInterface(listbox) {
-        var folderPath = getFolderPath();
+        var folderPath = getAfterEffectsSettings("Folder", false);
         if (folderPath !== false) {
             var files = getScriptFiles(folderPath);
             GLOBAL_CLICK_DATABASE = getClickDatabase();
