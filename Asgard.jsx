@@ -186,12 +186,12 @@
 
     /**
      * Add a script to the current listbox.
-     * @param {Listbox} listbox - current listbox
-     * @param {Object}  file    - current file object
-     * @param {Boolean} useStar - if file indicates "favorite"
+     * @param {Listbox} listbox    - current listbox
+     * @param {Object}  file       - current file object
+     * @param {Boolean} isFavorite - if file is favorite
      */
-    function addListItem(listbox, file, useStar) {
-        var name = (useStar) ? "★ " + file.name : file.name;
+    function addListItem(listbox, file, isFavorite) {
+        var name = (isFavorite) ? Script.ICON + " " + file.name : file.name;
         var listItem = listbox.add("item", name);
         listItem.fileName = file.name;
         listItem.filePath = file.path;
@@ -200,7 +200,7 @@
     /**
      * Check to see if the file name contains a subset of characters.
      * @param  {Object} file   - current file object
-     * @param  {String} filter - character filter
+     * @param  {String} filter - character(s) filter
      * @return {Boolean}       - file name includes
      */
     function fileNameIncludes(file, filter) {
@@ -209,17 +209,17 @@
 
     /**
      * Add all scripts to the current listbox that match an optional filter.
-     * @param {Listbox} listbox - current listbox
-     * @param {Array}   files   - array of file objects
-     * @param {Boolean} useStar - if list indicates "favorites"
-     * @param {String}  filter  - character filter (optional)
+     * @param {Listbox} listbox    - current listbox
+     * @param {Array}   files      - array of file objects
+     * @param {Boolean} isFavorite - if file is favorite
+     * @param {String}  filter     - character(s) filter
      */
-    function addListItems(listbox, files, useStar, filter) {
+    function addListItems(listbox, files, isFavorite, filter) {
         var numFiles = files.length;
         for (var i = 0; i < numFiles; i++) {
             var file = files[i];
             if (filter === undefined || fileNameIncludes(file, filter)) {
-                addListItem(listbox, file, useStar);
+                addListItem(listbox, file, isFavorite);
             }
         }
     }
@@ -228,7 +228,7 @@
      * Remove all scripts in the current listbox and rebuild the list with all scripts that match an
      * optional filter.
      * @param  {Listbox} listbox - current listbox
-     * @param  {String}  filter  - character filter (optional)
+     * @param  {String}  filter  - character(s) filter
      */
     function populateListbox(listbox, filter) {
         listbox.removeAll();
