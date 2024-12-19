@@ -74,7 +74,10 @@
             } else {
                 var name = item.displayName;
                 if (name.match(/\.jsx$/g)) {
-                    files.push({"name": name.replace(".jsx", ""), "path": item.fsName});
+                    files.push({
+                        "name": name.replace(".jsx", ""),
+                        "path": item.fsName
+                    });
                 }
             }
         }
