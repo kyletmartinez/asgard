@@ -23,8 +23,7 @@
 
 (function(thisObj) {
 
-    var GLOBAL_CLICK_DATABASE = {};
-    var GLOBAL_SCRIPT_FILES = {};
+    var Script = {"CLICKS": {}, "FILES": {}, "ICON": "🎉"};
 
     /**********************************************************************************************
      * GET AND SET AFTER EFFECTS SETTINGS *********************************************************
@@ -117,7 +116,7 @@
         var folder = getDatabaseFolder();
         var file = new File(folder.fsName + "/db.json");
         file.open("w");
-        file.write(JSON.stringify(GLOBAL_CLICK_DATABASE, undefined, 4));
+        file.write(JSON.stringify(Script.CLICKS, undefined, 4));
         file.close();
     }
 
@@ -142,7 +141,7 @@
      * @param {String} name - current script name
      */
     function setClicks(name) {
-        GLOBAL_CLICK_DATABASE[name] = (GLOBAL_CLICK_DATABASE[name] || 0) + 1;
+        Script.CLICKS[name] = (Script.CLICKS[name] || 0) + 1;
         setClickDatabase();
     }
 
@@ -152,7 +151,7 @@
      * @return {Int}         - number of clicks
      */
     function getClicks(name) {
-        return (GLOBAL_CLICK_DATABASE[name] || 0);
+        return (Script.CLICKS[name] || 0);
     }
 
     /**
@@ -233,8 +232,8 @@
      */
     function populateListbox(listbox, filter) {
         listbox.removeAll();
-        addListItems(listbox, GLOBAL_SCRIPT_FILES.favorite, true, filter);
-        addListItems(listbox, GLOBAL_SCRIPT_FILES.standard, false, filter);
+        addListItems(listbox, Script.FILES.favorite, true, filter);
+        addListItems(listbox, Script.FILES.standard, false, filter);
     }
 
     /**********************************************************************************************
@@ -249,8 +248,8 @@
         var folderPath = getAfterEffectsSettings("Folder", false);
         if (folderPath !== false) {
             var files = getScriptFiles(folderPath);
-            GLOBAL_CLICK_DATABASE = getClickDatabase();
-            GLOBAL_SCRIPT_FILES = mergeScriptFiles(files);
+            Script.CLICKS = getClickDatabase();
+            Script.FILES = mergeScriptFiles(files);
             populateListbox(listbox);
         }
     }
