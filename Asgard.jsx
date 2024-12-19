@@ -237,7 +237,51 @@
     }
 
     /**********************************************************************************************
-     * USER INTERFACE *****************************************************************************
+     * SETTINGS USER INTERFACE ********************************************************************
+     **********************************************************************************************/
+
+    function openSettings(listbox) {
+        var win = new Window("dialog", "Settings");
+        win.alignChildren = ["fill", "fill"];
+
+        var setFolderButton = win.add("button", undefined, "Set New Folder");
+        setFolderButton.onClick = function() {
+            var folder = Folder.selectDialog();
+            if (folder !== null) {
+                setAfterEffectsSetting("Folder", folder.fsName);
+                refreshUserInterface(listbox);
+            }
+        };
+
+        var resetFavoritesButton = win.add("button", undefined, "Reset Favorites");
+        resetFavoritesButton.onClick = function() {
+            Script.CLICKS = {};
+            setClickDatabase();
+            refreshUserInterface(listbox);
+        };
+
+        var group = win.add("group");
+
+        var favoritesIconLabel = group.add("statictext", undefined, "Favorites Icon:");
+        favoritesIconLabel.preferredSize.width = 70;
+
+        var favoritesIconEditText = group.add('edittext {justify: "center"}');
+        favoritesIconEditText.text = Script.ICON;
+        favoritesIconEditText.preferredSize.width = 70;
+
+        var okButton = win.add("button", undefined, "Ok");
+        okButton.onClick = function() {
+            Script.ICON = favoritesIconEditText.text;
+            setAfterEffectsSetting("Icon", Script.ICON);
+            refreshUserInterface(listbox);
+            win.close();
+        };
+
+        win.show();
+    }
+
+    /**********************************************************************************************
+     * PANEL USER INTERFACE ***********************************************************************
      **********************************************************************************************/
 
     /**
@@ -295,16 +339,12 @@
             populateListbox(listbox, filter);
         };
 
-        var folderButton = group.add("button");
-        folderButton.text = "f";
-        folderButton.maximumSize.height = 24;
-        folderButton.maximumSize.width = 24;
-        folderButton.onClick = function() {
-            var folder = Folder.selectDialog();
-            if (folder !== null) {
-                setFolderPath(folder.fsName);
-                refreshUserInterface(listbox);
-            }
+        var settingsButton = group.add("button", undefined, "s");
+        settingsButton.text = "s";
+        settingsButton.minimumSize = [24, 24];
+        settingsButton.maximumSize = [24, 24];
+        settingsButton.onClick = function() {
+            openSettings(listbox);
         };
 
         var listbox = win.add("listbox");
@@ -314,6 +354,7 @@
             $.evalFile(File(listbox.selection.filePath));
         };
 
+        Script.ICON = getAfterEffectsSettings("Icon", Script.ICON);
         refreshUserInterface(listbox);
 
         win.onResizing = win.onResize = function() {
