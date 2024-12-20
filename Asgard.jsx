@@ -5,10 +5,12 @@
  *
  * @description A 3rd-party script launcher for After Effects.
  *
+ * PANEL:
+ *
  * Click the "X" button to clear the search box and repopulate the list.
  * Click the "S" button to open the settings window.
  *
- * SETTINGS WINDOW:
+ * SETTINGS:
  *
  * Click the "Set New Folder" button to set a new folder location to load scripts.
  * Click the "Reset Favorites" to remove all recorded click usage.
