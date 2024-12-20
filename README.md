@@ -14,6 +14,4 @@ A 3rd-party script launching tool for Adobe After Effects.
 * Click the `Reset Favorites` to remove all recorded click usage.
 * Set your favorite text or emoji to represent commonly clicked scripts.
 
-## Current Use
-
 I use Asgard alongside my [after-effects-scripts](https://github.com/kyletmartinez/after-effects-scripts) repository to quickly use scripts that I don't want to dedicate a pull panel to or create buttons for in Kbar.
