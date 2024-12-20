@@ -158,6 +158,25 @@
     }
 
     /**
+     * Get the minimum click value to add to favorites. This is calculated by finding the lowest
+     * click amount within the top percentage of all clicks.
+     * @param  {Float} percentage - top percentage of clicks to look at
+     * @return {Int}              - minimum click clount
+     */
+    function getMinimumClicks(percentage) {
+        var clickArray = [];
+        for (key in Script.CLICKS) {
+            if (Script.CLICKS.hasOwnProperty(key) === true) {
+                clickArray.push(Script.CLICKS[key]);
+            }
+        }
+        clickArray.sort(function(a, b) {
+            return b - a;
+        });
+        return clickArray[Math.floor(clickArray.length * percentage)];
+    }
+
+    /**
      * Merge the script list and database into a single object containing both favorite and standard
      * script types.
      * @param  {Array} files - array of file objects
@@ -165,10 +184,11 @@
      */
     function mergeScriptFiles(files) {
         var scriptList = {"favorite": [], "standard": []};
+        var minClicks = getMinimumClicks(0.25);
         var numFiles = files.length;
         for (var i = 0; i < numFiles; i++) {
             var file = files[i];
-            if (getClicks(file.name) >= 5) {
+            if (getClicks(file.name) >= minClicks) {
                 scriptList.favorite.push(file);
             } else {
                 scriptList.standard.push(file);
