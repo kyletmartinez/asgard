@@ -367,7 +367,6 @@
         };
 
         var settingsButton = group.add("button", undefined, "s");
-        settingsButton.text = "s";
         settingsButton.minimumSize = [24, 24];
         settingsButton.maximumSize = [24, 24];
         settingsButton.onClick = function() {
