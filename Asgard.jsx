@@ -1,6 +1,6 @@
 /**
  * @name Asgard
- * @version 1.2.1
+ * @version 1.2.2
  * @author Kyle Martinez <www.kyle-martinez.com>
  *
  * @description A 3rd-party script launcher for After Effects.
