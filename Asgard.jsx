@@ -5,13 +5,14 @@
  *
  * @description A 3rd-party script launcher for After Effects.
  *
- * Click the "F" button (folder button) to select a folder for JSX scripts. The folder path will be
- * stored in the After Effects preferences for future use.
+ * Click the "X" button to clear the search box and repopulate the list.
+ * Click the "S" button to open the settings window.
  *
- * Search with the search box or scroll to a script you would like to use and double click it to run
- * the script.
+ * SETTINGS WINDOW:
  *
- * Click the "X" button (clear button) to clear the search box and repopulate the list.
+ * Click the "Set New Folder" button to set a new folder location to load scripts.
+ * Click the "Reset Favorites" to remove all recorded click usage.
+ * Set your favorite text or emoji to represent commonly clicked scripts.
  *
  * @license This script is provided "as is," without warranty of any kind, expressed or implied. In
  * no event shall the author be held liable for any damages arising in any way from the use of this
